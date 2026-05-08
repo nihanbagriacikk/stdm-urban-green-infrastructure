@@ -1,0 +1,31 @@
+import rasterio
+import numpy as np
+import pandas as pd
+from sklearn.cluster import KMeans
+
+print("Reading data...")
+
+# NDVI
+ndvi = (nir - red) / (nir + red + 0.0001)
+
+# SAR ratio
+ratio = vv / (vh + 0.0001)
+
+# Feature table
+features = pd.DataFrame({
+    "NDVI": ndvi.flatten(),
+    "VV": vv.flatten(),
+    "VH": vh.flatten(),
+    "Ratio": ratio.flatten()
+})
+
+features = features.dropna()
+
+print("Running K-Means...")
+
+kmeans = KMeans(n_clusters=3)
+features["Cluster"] = kmeans.fit_predict(features)
+
+features.to_csv("result.csv", index=False)
+
+print("Done.")
