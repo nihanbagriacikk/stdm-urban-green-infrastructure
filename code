@@ -1,0 +1,26 @@
+import rasterio
+import numpy as np
+
+print("1. Sentinel-2 bands are being read...")
+
+with rasterio.open("sentinel2_B04_red.tif") as red_src:
+    red = red_src.read(1).astype("float32")
+    profile = red_src.profile
+
+with rasterio.open("sentinel2_B08_nir.tif") as nir_src:
+    nir = nir_src.read(1).astype("float32")
+
+print("2. NDVI is being calculated...")
+
+ndvi = (nir - red) / (nir + red + 0.0001)
+
+print("3. NDVI classification is being created...")
+
+green = np.where(ndvi > 0.3, 1, 0)
+
+profile.update(dtype=rasterio.uint8, count=1)
+
+with rasterio.open("ndvi_result.tif", "w", **profile) as dst:
+    dst.write(green.astype(rasterio.uint8), 1)
+
+print("Done.")
